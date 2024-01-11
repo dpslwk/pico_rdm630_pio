@@ -21,6 +21,13 @@ extern "C" {
 #define RDM630_READ_TIMEOUT            (20)
 #define RMD630_FIFO_SIZE               (RDM630_PACKET_SIZE * 3)
 
+#ifndef CONFIG_RDM630_TASK_PRIORITY
+#define CONFIG_RDM630_TASK_PRIORITY           (tskIDLE_PRIORITY + 1)
+#endif
+#ifndef CONFIG_RDM630_TASK_STACK_SIZE
+#define CONFIG_RDM630_TASK_STACK_SIZE         (1024)
+#endif
+
 // can't use this due to forward delectation issue ??
 // typedef void (*rdm630_pio_callback_t)(rdm630_pio_t *rdm630_pio, uint32_t tag_id);
 typedef void (*rdm630_pio_callback_t)(void *rdm630_pio, uint32_t tag_id);
@@ -47,6 +54,11 @@ typedef struct {
     uint32_t _last_tag_id;
     uint32_t _last_tag_ms;
     uint32_t _tag_timeout_ms;
+
+    #ifndef NDEBUG
+    TickType_t xLastWakeTime;
+    TickType_t xLastWatchdog;
+    #endif
 } rdm630_pio_t;
 
 

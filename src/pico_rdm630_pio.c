@@ -68,6 +68,10 @@ static void _rdm630_shared_pio_irq_func_pio1_sm3(void) {
 
 static void _rdm630_async_iqr_worker_func(async_context_t *async_context, async_when_pending_worker_t *worker) {
     rdm630_pio_t *self = worker->user_data;
+    #ifndef NDEBUG
+    printf("_rdm630_async_iqr_worker_func: %d\n", self->rx_pin);
+    #endif
+
     while(! queue_is_empty(&self->fifo)) {
         char c;
         if (!queue_try_remove(&self->fifo, &c)) {
@@ -125,6 +129,14 @@ static void _rdm630_async_iqr_worker_func(async_context_t *async_context, async_
 }
 
 void _rdm630_update(rdm630_pio_t *self) {
+    #ifndef NDEBUG
+    self->xLastWakeTime = xTaskGetTickCount();
+    if (self->xLastWakeTime - self->xLastWatchdog > pdMS_TO_TICKS(1000)) {
+        self->xLastWatchdog = self->xLastWakeTime;
+        printf("Watchdog: RDM630 %d\n", self->rx_pin);
+    }
+    #endif
+
     uint32_t cur_ms = to_ms_since_boot(get_absolute_time());
     uint32_t tag_id = self->_current_tag_id;
     self->_current_tag_id = 0;
@@ -175,7 +187,15 @@ bool rdm630_pio_init(rdm630_pio_t *rdm630_pio, PIO pio, int sm, int rx_pin, rdm6
     queue_init(&self->fifo, 1, RMD630_FIFO_SIZE);
 
     if (! _rdm630_share_async_context_initalized) {
-        if (! async_context_freertos_init_with_defaults(&_rdm630_share_async_context)) {
+        async_context_freertos_config_t config = async_context_freertos_default_config();
+        #ifdef CONFIG_RDM630_TASK_PRIORITY
+            config.task_priority = CONFIG_RDM630_TASK_PRIORITY;
+        #endif
+        #ifdef CONFIG_RDM630_TASK_STACK_SIZE
+            config.task_stack_size = CONFIG_RDM630_TASK_STACK_SIZE;
+        #endif
+
+        if (! async_context_freertos_init(&_rdm630_share_async_context, &config)) {
             panic("failed to setup context");
         }
 
