@@ -12,12 +12,25 @@
 
 #include "pico_rdm630_pio.h"
 
-int32_t _rdm630_shared_pio_program_offset[NUM_PIOS] = {-1,};
-int8_t _rdm630_shared_pio_irq[NUM_PIOS] = {-1,};
+int32_t _rdm630_shared_pio_program_offset[NUM_PIOS] = {-1, -1};
+int8_t _rdm630_shared_pio_irq[NUM_PIOS] = {-1, -1};
 static async_context_freertos_t _rdm630_share_async_context;
 bool _rdm630_share_async_context_initalized = false;
 
 rdm630_pio_t *_rdm630_pio_instances[NUM_PIOS][NUM_PIO_STATE_MACHINES];
+
+uint32_t _rdm630_irq_init(void *param) {
+    rdm630_pio_t *self = (rdm630_pio_t *) param;
+#ifndef NDEBUG
+    assert(get_core_num() == async_context_core_num(&_rdm630_share_async_context.core));
+#endif
+    irq_add_shared_handler(self->pio_irq, self->pio_irq_func, PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY); // Add a shared IRQ handler
+    irq_set_enabled(self->pio_irq, true); // Enable the IRQ
+    const unsigned int irq_index = self->pio_irq - ((self->pio == pio0) ? PIO0_IRQ_0 : PIO1_IRQ_0); // Get index of the IRQ
+    pio_set_irqn_source_enabled(self->pio, irq_index, pis_sm0_rx_fifo_not_empty + self->pio_sm, true); // Set pio to tell us when the FIFO is NOT empty
+
+    return 0;
+}
 
 static void _rdm630_shared_pio_irq_func(rdm630_pio_t *self) {
     while(!pio_sm_is_rx_fifo_empty(self->pio, self->pio_sm)) {
@@ -270,10 +283,7 @@ bool rdm630_pio_init(rdm630_pio_t *rdm630_pio, PIO pio, int sm, int rx_pin, rdm6
     }
 
     // Enable interrupt
-    irq_add_shared_handler(self->pio_irq, self->pio_irq_func, PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY); // Add a shared IRQ handler
-    irq_set_enabled(self->pio_irq, true); // Enable the IRQ
-    const unsigned int irq_index = self->pio_irq - ((self->pio == pio0) ? PIO0_IRQ_0 : PIO1_IRQ_0); // Get index of the IRQ
-    pio_set_irqn_source_enabled(self->pio, irq_index, pis_sm0_rx_fifo_not_empty + self->pio_sm, true); // Set pio to tell us when the FIFO is NOT empty
+    async_context_execute_sync(&_rdm630_share_async_context.core, _rdm630_irq_init, self);
 
     return true;
 }
