@@ -197,7 +197,7 @@ bool rdm630_pio_init(rdm630_pio_t *rdm630_pio, PIO pio, int sm, int rx_pin, rdm6
 
     _rdm630_pio_instances[pio_get_index(self->pio)][self->pio_sm] = self;
 
-    queue_init(&self->fifo, 1, RMD630_FIFO_SIZE);
+    queue_init(&self->fifo, 1, RDM630_FIFO_SIZE);
 
     if (! _rdm630_share_async_context_initalized) {
         async_context_freertos_config_t config = async_context_freertos_default_config();

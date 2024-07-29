@@ -1,4 +1,4 @@
-# RMD630 Library for Pico using PIO's and FreeRTOS
+# RDM630 Library for Pico using PIO's and FreeRTOS
 
 ```bash
 rm -rvf build

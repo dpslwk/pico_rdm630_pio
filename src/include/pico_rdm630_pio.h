@@ -19,7 +19,7 @@ extern "C" {
 #define RDM630_PACKET_END              (0x03)
 #define RDM630_DEFAULT_TAG_TIMEOUT_MS  (300)
 #define RDM630_READ_TIMEOUT            (20)
-#define RMD630_FIFO_SIZE               (RDM630_PACKET_SIZE * 3)
+#define RDM630_FIFO_SIZE               (RDM630_PACKET_SIZE * 3)
 
 #ifndef CONFIG_RDM630_TASK_PRIORITY
 #define CONFIG_RDM630_TASK_PRIORITY           (tskIDLE_PRIORITY + 1)

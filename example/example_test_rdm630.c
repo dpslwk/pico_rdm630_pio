@@ -18,10 +18,10 @@ static const char *MAIN_TASK_NAME = "MainThread";
 #define RDM_THREE_PIN (13)
 #define RDM_FOUR_PIN (14)
 
-rdm630_pio_t rmd_1;
-rdm630_pio_t rmd_2;
-rdm630_pio_t rmd_3;
-rdm630_pio_t rmd_4;
+rdm630_pio_t rdm_1;
+rdm630_pio_t rdm_2;
+rdm630_pio_t rdm_3;
+rdm630_pio_t rdm_4;
 
 static void new_tag_one_cb(void *rdm630_pio, uint32_t tag_id) {
     rdm630_pio_t *self = rdm630_pio;
@@ -47,7 +47,7 @@ void main_task(void *params)
 
     printf("setting up rdm 0\n");
     rdm630_pio_init(
-        &rmd_1,
+        &rdm_1,
         pio,
         pio_claim_unused_sm(pio, true),
         RDM_ONE_PIN,
@@ -55,7 +55,7 @@ void main_task(void *params)
     );
     printf("setting up rdm 1\n");
     rdm630_pio_init(
-        &rmd_2,
+        &rdm_2,
         pio,
         pio_claim_unused_sm(pio, true),
         RDM_TWO_PIN,
@@ -63,7 +63,7 @@ void main_task(void *params)
     );
     printf("setting up rdm 2\n");
     rdm630_pio_init(
-        &rmd_3,
+        &rdm_3,
         pio,
         pio_claim_unused_sm(pio, true),
         RDM_THREE_PIN,
@@ -71,7 +71,7 @@ void main_task(void *params)
     );
     printf("setting up rdm 3\n");
     rdm630_pio_init(
-        &rmd_4,
+        &rdm_4,
         pio,
         pio_claim_unused_sm(pio, true),
         RDM_FOUR_PIN,
