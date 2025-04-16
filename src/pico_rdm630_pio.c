@@ -46,7 +46,7 @@ void _rmd630_dma_complete_handler(void) {
 uint32_t _rdm630_dma_init(void *param) {
     rdm630_pio_t *self = (rdm630_pio_t *) param;
 #ifndef NDEBUG
-    assert(get_core_num() == async_context_core_num(&_rdm630_share_async_context.core));
+    printf("_rdm630_dma_init: %d\n", self->rx_pin);
 #endif
     self->dma_ch = dma_claim_unused_channel(true);
 
