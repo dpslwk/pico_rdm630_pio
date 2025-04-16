@@ -79,10 +79,10 @@ static void _rdm630_shared_pio_irq_func_pio1_sm3(void) {
     _rdm630_shared_pio_irq_func(_rdm630_pio_instances[1][3]);
 }
 
-static void _rdm630_async_iqr_worker_func(async_context_t *async_context, async_when_pending_worker_t *worker) {
+static void _rdm630_async_irq_worker_func(async_context_t *async_context, async_when_pending_worker_t *worker) {
     rdm630_pio_t *self = worker->user_data;
     #ifndef NDEBUG
-    printf("_rdm630_async_iqr_worker_func: %d\n", self->rx_pin);
+    printf("_rdm630_async_irq_worker_func: %d\n", self->rx_pin);
     #endif
 
     while(! queue_is_empty(&self->fifo)) {
@@ -214,7 +214,7 @@ bool rdm630_pio_init(rdm630_pio_t *rdm630_pio, PIO pio, int sm, int rx_pin, rdm6
 
         _rdm630_share_async_context_initalized = true;
     }
-    self->irq_worker.do_work = _rdm630_async_iqr_worker_func;
+    self->irq_worker.do_work = _rdm630_async_irq_worker_func;
     self->irq_worker.user_data = rdm630_pio;
     async_context_add_when_pending_worker(&_rdm630_share_async_context.core, &self->irq_worker);
     self->poll_worker.do_work = _rdm630_async_poll_worker_func;
