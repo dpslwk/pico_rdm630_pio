@@ -13,6 +13,8 @@
 extern "C" {
 #endif
 
+// Tag is resent every ~50ms
+
 #define RDM630_BAUDRATE                (9600)
 #define RDM630_PACKET_SIZE             (14)
 #define RDM630_PACKET_BEGIN            (0x02)
@@ -22,10 +24,17 @@ extern "C" {
 #define RDM630_FIFO_SIZE               (RDM630_PACKET_SIZE * 3)
 
 #ifndef CONFIG_RDM630_TASK_PRIORITY
-#define CONFIG_RDM630_TASK_PRIORITY           (tskIDLE_PRIORITY + 1)
+#define CONFIG_RDM630_TASK_PRIORITY     (tskIDLE_PRIORITY + 1)
 #endif
 #ifndef CONFIG_RDM630_TASK_STACK_SIZE
-#define CONFIG_RDM630_TASK_STACK_SIZE         (1024)
+#define CONFIG_RDM630_TASK_STACK_SIZE   (1024)
+#endif
+#ifndef CONFIG_RDM630_USE_DMA
+#define CONFIG_RDM630_USE_DMA           1
+#endif
+
+#ifndef CONFIG_RDM630_DMA_IRQ_TO_USE
+#define CONFIG_RDM630_DMA_IRQ_TO_USE    DMA_IRQ_1
 #endif
 
 // can't use this due to forward delectation issue ??
@@ -42,7 +51,9 @@ typedef struct {
     int8_t pio_irq;
     irq_handler_t pio_irq_func;
     queue_t fifo;
+    int dma_ch;
     async_when_pending_worker_t irq_worker;
+    async_when_pending_worker_t dma_worker;
     async_at_time_worker_t poll_worker;
 
     char buffer[RDM630_PACKET_SIZE];
