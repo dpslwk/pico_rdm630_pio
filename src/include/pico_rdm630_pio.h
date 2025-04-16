@@ -34,7 +34,7 @@ extern "C" {
 #endif
 
 #ifndef CONFIG_RDM630_DMA_IRQ_TO_USE
-#define CONFIG_RDM630_DMA_IRQ_TO_USE    DMA_IRQ_1
+#define CONFIG_RDM630_DMA_IRQ_TO_USE    1
 #endif
 
 // can't use this due to forward delectation issue ??

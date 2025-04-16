@@ -46,7 +46,7 @@ void _rmd630_dma_complete_handler(void) {
 uint32_t _rdm630_dma_init(void *param) {
     rdm630_pio_t *self = (rdm630_pio_t *) param;
 #ifndef NDEBUG
-    printf("_rdm630_dma_init: %d\n", self->rx_pin);
+    // printf("_rdm630_dma_init: %d\n", self->rx_pin);
 #endif
     self->dma_ch = dma_claim_unused_channel(true);
 
@@ -64,12 +64,12 @@ uint32_t _rdm630_dma_init(void *param) {
         false); /* don't start yet */
 
     if (! _rdm630_shared_dma_handleder_initalized) {
-        irq_add_shared_handler(CONFIG_RDM630_DMA_IRQ_TO_USE, &_rmd630_dma_complete_handler, PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY); /* after DMA all data, raise an interrupt */
+        irq_add_shared_handler(dma_get_irq_num(CONFIG_RDM630_DMA_IRQ_TO_USE), &_rmd630_dma_complete_handler, PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY); /* after DMA all data, raise an interrupt */
         _rdm630_shared_dma_handleder_initalized = true;
     }
 
     dma_irqn_set_channel_enabled(CONFIG_RDM630_DMA_IRQ_TO_USE, self->dma_ch, true); /* map DMA channel to interrupt */
-    irq_set_enabled(CONFIG_RDM630_DMA_IRQ_TO_USE, true); /* enable interrupt */
+    irq_set_enabled(dma_get_irq_num(CONFIG_RDM630_DMA_IRQ_TO_USE), true); /* enable interrupt */
 
     // start the dma
     dma_channel_set_write_addr(self->dma_ch, &self->buffer, true);
@@ -80,7 +80,7 @@ uint32_t _rdm630_dma_init(void *param) {
 static void _rdm630_async_dma_worker_func(async_context_t *async_context, async_when_pending_worker_t *worker) {
     rdm630_pio_t *self = worker->user_data;
     #ifndef NDEBUG
-    printf("_rdm630_async_dma_worker_func: %d\n", self->rx_pin);
+    // printf("_rdm630_async_dma_worker_func: %d\n", self->rx_pin);
     #endif
 
     if (RDM630_PACKET_BEGIN != self->buffer[0]
@@ -189,7 +189,7 @@ static void _rdm630_shared_pio_irq_func_pio1_sm3(void) {
 static void _rdm630_async_irq_worker_func(async_context_t *async_context, async_when_pending_worker_t *worker) {
     rdm630_pio_t *self = worker->user_data;
     #ifndef NDEBUG
-    printf("_rdm630_async_irq_worker_func: %d\n", self->rx_pin);
+    // printf("_rdm630_async_irq_worker_func: %d\n", self->rx_pin);
     #endif
 
     while(! queue_is_empty(&self->fifo)) {
@@ -418,6 +418,8 @@ bool rdm630_pio_deinit(rdm630_pio_t *rdm630_pio) {
     dma_irqn_set_channel_enabled(CONFIG_RDM630_DMA_IRQ_TO_USE, self->dma_ch, false);
     dma_channel_abort(self->dma_ch);
     dma_irqn_acknowledge_channel(CONFIG_RDM630_DMA_IRQ_TO_USE, self->dma_ch);
+    // irq_set_enabled(dma_get_irq_num(CONFIG_RDM630_DMA_IRQ_TO_USE), false);
+    // irq_remove_handler(dma_get_irq_num(CONFIG_RDM630_DMA_IRQ_TO_USE), self->pio_irq_func);
     #else
     const unsigned int irq_index = self->pio_irq - ((self->pio == pio0) ? PIO0_IRQ_0 : PIO1_IRQ_0); // Get index of the IRQ
     pio_set_irqn_source_enabled(self->pio, irq_index, pis_sm0_rx_fifo_not_empty + self->pio_sm, false);
