@@ -17,6 +17,9 @@
 int32_t _rdm630_shared_pio_program_offset[NUM_PIOS] = {-1, -1};
 int8_t _rdm630_shared_pio_irq[NUM_PIOS] = {-1, -1};
 static async_context_freertos_t _rdm630_share_async_context;
+#if configSUPPORT_STATIC_ALLOCATION
+static StackType_t _rdm630_async_context_task_stack[CONFIG_RDM630_TASK_STACK_SIZE];
+#endif
 bool _rdm630_share_async_context_initalized = false;
 bool _rdm630_shared_dma_handleder_initalized = false;
 
@@ -315,6 +318,9 @@ bool rdm630_pio_init(rdm630_pio_t *rdm630_pio, PIO pio, int sm, int rx_pin, rdm6
         #endif
         #ifdef CONFIG_RDM630_TASK_STACK_SIZE
             config.task_stack_size = CONFIG_RDM630_TASK_STACK_SIZE;
+        #endif
+        #if configSUPPORT_STATIC_ALLOCATION
+            config.task_stack = _rdm630_async_context_task_stack;
         #endif
 
         if (! async_context_freertos_init(&_rdm630_share_async_context, &config)) {
